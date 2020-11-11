@@ -1,12 +1,37 @@
 // @flow 
-import { createChart, CrosshairMode } from 'lightweight-charts';
 import * as React from 'react';
+import { createChart, CrosshairMode, ISeriesApi } from 'lightweight-charts';
+import { Legend } from '../Legend';
 import './index.css';
+import { cryptoHttp } from '../../http';
 
 interface ChartProps {};
 
 export const Chart: React.FC<ChartProps> = (props) => {
   const containerRef = React.useRef() as React.MutableRefObject<HTMLDivElement>;
+  const candleSeriesRef = React.useRef() as React.MutableRefObject<ISeriesApi<"Candlestick">>;
+  const [prices, setPrices] = React.useState([]);
+
+  React.useEffect(() => {
+    cryptoHttp.get(`histoday?fsym=BTC&tsym=BRL&limit=300`)
+      .then(response => {
+        const prices = response.data.Data.map((row: any) => ({
+          time: row.time,
+          low: row.low,
+          high: row.high,
+          open: row.open,
+          close: row.close,
+          volume: row.volumefrom
+        }));
+        setPrices(prices);
+      })
+  }, []);
+
+  React.useEffect(() => {
+    if (candleSeriesRef.current) {
+      candleSeriesRef.current.setData(prices)
+    };
+  }, [prices]);
 
   React.useEffect(() => {
     const chart = createChart(
@@ -37,12 +62,23 @@ export const Chart: React.FC<ChartProps> = (props) => {
           borderColor: "#485c7b"
         }
       }
-    )
-  })
+    );
+
+    candleSeriesRef.current = chart.addCandlestickSeries({
+      upColor: "#4bffb5",
+      downColor: "#ff4976",
+      borderUpColor: "#4bffb5",
+      borderDownColor: "#ff4976",
+      wickUpColor: "#838ca1",
+      wickDownColor: "#838ca1"
+    });
+
+
+  }, []);
 
   return (
     <div className="Chart" ref={containerRef}>
-      
+      <Legend legend="BTC" />
     </div>
   );
 };
