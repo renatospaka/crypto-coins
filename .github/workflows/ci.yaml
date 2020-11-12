@@ -11,11 +11,15 @@ jobs:
   build-app:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Verificando o código
         uses: actions/checkout@v2
-      - name: Setup Node 12
+      - name: Configurando nodejs 12
         uses: actions/setup-node@v1
         with:
           node-version: '12'
-      - name: Install Dependencies
+      - name: Instalando as dependências
         run: npm install
+      - name: Testando a aplicação
+        run: npm test
+        env:
+          CI: true
